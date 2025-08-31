@@ -479,6 +479,36 @@
         .icon {
             margin-right: 8px;
         }
+
+        /* Import/Export section */
+        .data-transfer {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px dashed #dee2e6;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-label {
+            display: block;
+            padding: 12px 20px;
+            background: linear-gradient(to right, var(--info), #39c0ed);
+            color: white;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .file-label:hover {
+            background: linear-gradient(to right, #39c0ed, var(--info));
+            box-shadow: 0 4px 8px rgba(23, 162, 184, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -501,6 +531,7 @@
             <div class="tab" data-tab="purchase">🛒 Compras</div>
             <div class="tab" data-tab="sale">💰 Ventas</div>
             <div class="tab" data-tab="closing">💼 Cierre de Caja</div>
+            <div class="tab" data-tab="transfer">🔄 Transferencia</div>
         </div>
         
         <!-- Dashboard -->
@@ -803,6 +834,38 @@
                 </div>
             </div>
         </div>
+
+        <!-- Transferencia de Datos -->
+        <div class="tab-content" id="transfer">
+            <div class="card">
+                <div class="card-header">Transferencia de Datos</div>
+                <div class="card-body">
+                    <div class="data-transfer">
+                        <h3>Exportar Datos</h3>
+                        <p>Exporte todos los datos del sistema para transferirlos a otra computadora.</p>
+                        <div class="export-buttons">
+                            <button class="btn-success" id="export-json">💾 Exportar a JSON</button>
+                            <button class="btn-info" id="create-backup">📦 Crear Copia de Seguridad</button>
+                        </div>
+                    </div>
+
+                    <div class="data-transfer">
+                        <h3>Importar Datos</h3>
+                        <p>Importe datos desde un archivo JSON para cargarlos en el sistema.</p>
+                        <input type="file" id="import-file" class="file-input" accept=".json">
+                        <label for="import-file" class="file-label">📁 Seleccionar Archivo JSON</label>
+                        <button class="btn-primary" id="import-json">📤 Importar Datos</button>
+                        <div id="import-status" style="margin-top: 15px;"></div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <span class="alert-icon">💡</span>
+                        <strong>Nota:</strong> Al importar datos, se reemplazarán todos los datos actuales del sistema. 
+                        Asegúrese de exportar una copia de seguridad primero si desea conservar los datos actuales.
+                    </div>
+                </div>
+            </div>
+        </div>
         
         <div class="copyright">
             &copy; 2025 Adobados Doña Lidia - Todos los derechos reservados
@@ -843,6 +906,7 @@
             <div class="export-buttons">
                 <button class="btn-success" id="modal-export-excel">📊 Exportar a Excel</button>
                 <button class="btn-danger" id="modal-export-pdf">📄 Exportar a PDF</button>
+                <button class="btn-info" id="modal-export-json">💾 Exportar a JSON</button>
             </div>
         </div>
     </div>
@@ -1381,6 +1445,74 @@ ${difference === 0 ? '✅ CUADRE PERFECTO' : difference > 0 ? '⚠️ SOBRANTE E
                 doc.save(`${filename}.pdf`);
             }
             
+            // Exportar a JSON
+            function exportToJSON() {
+                const data = {
+                    products: products,
+                    purchases: purchases,
+                    sales: sales,
+                    exportDate: new Date(),
+                    company: "Adobados Doña Lidia"
+                };
+                
+                const dataStr = JSON.stringify(data, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = `adobados_dona_lidia_${new Date().toISOString().slice(0,10)}.json`;
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+            }
+            
+            // Importar desde JSON
+            function importFromJSON(file) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        
+                        if (data.company !== "Adobados Doña Lidia") {
+                            showAlert('El archivo seleccionado no es válido para este sistema.', 'danger');
+                            return;
+                        }
+                        
+                        // Actualizar datos
+                        if (data.products) {
+                            products = data.products;
+                            localStorage.setItem('products', JSON.stringify(products));
+                        }
+                        
+                        if (data.purchases) {
+                            purchases = data.purchases;
+                            localStorage.setItem('purchases', JSON.stringify(purchases));
+                        }
+                        
+                        if (data.sales) {
+                            sales = data.sales;
+                            localStorage.setItem('sales', JSON.stringify(sales));
+                        }
+                        
+                        // Actualizar interfaz
+                        renderProducts();
+                        renderPurchases();
+                        renderSales();
+                        loadProductOptions();
+                        updateDashboard();
+                        
+                        showAlert('Datos importados correctamente.', 'success');
+                        document.getElementById('import-status').textContent = 'Importación completada con éxito.';
+                    } catch (error) {
+                        showAlert('Error al importar el archivo: ' + error.message, 'danger');
+                        document.getElementById('import-status').textContent = 'Error: ' + error.message;
+                    }
+                };
+                
+                reader.readAsText(file);
+            }
+            
             // Configurar eventos de exportación
             document.getElementById('export-excel-products').addEventListener('click', () => {
                 exportToExcel(products, 'inventario_adobados_dona_lidia');
@@ -1516,6 +1648,31 @@ ${difference === 0 ? '✅ CUADRE PERFECTO' : difference > 0 ? '⚠️ SOBRANTE E
                 }
                 
                 exportModal.style.display = 'none';
+            });
+
+            document.getElementById('modal-export-json').addEventListener('click', () => {
+                exportToJSON();
+                exportModal.style.display = 'none';
+            });
+            
+            // Configurar eventos de importación/exportación JSON
+            document.getElementById('export-json').addEventListener('click', exportToJSON);
+            
+            document.getElementById('create-backup').addEventListener('click', function() {
+                exportToJSON();
+                showAlert('Copia de seguridad creada correctamente.', 'success');
+            });
+            
+            document.getElementById('import-json').addEventListener('click', function() {
+                const fileInput = document.getElementById('import-file');
+                if (fileInput.files.length === 0) {
+                    showAlert('Por favor, seleccione un archivo JSON para importar.', 'danger');
+                    return;
+                }
+                
+                if (confirm('¿Está seguro de que desea importar datos? Esto reemplazará todos los datos actuales.')) {
+                    importFromJSON(fileInput.files[0]);
+                }
             });
             
             // Inicializar la aplicación
