@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Inventarios - Adobados Doña Lidia</title>
+    <style>
+        :root {
+            --primary: #8B0000;
+            --secondary: #FFD700;
+            --light: #F5F5F5;
+            --dark: #333;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            color: var(--dark);
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo h1 {
+            font-size: 1.8rem;
+            margin-left: 10px;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            background-color: var(--light);
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            background-color: #e9ecef;
+            border-right: 1px solid #dee2e6;
+        }
+        
+        .tab.active {
+            background-color: white;
+            border-bottom: 3px solid var(--primary);
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background-color: white;
+            border: 1px solid #dee2e6;
+            border-top: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .card {
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .card-header {
+            background-color: #f8f9fa;
+            padding: 12px 15px;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: bold;
+        }
+        
+        .card-body {
+            padding: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .alert {
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .summary-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .copyright {
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px;
+            color: #6c757d;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .nav-tabs {
+                flex-wrap: wrap;
+            }
+            
+            .tab {
+                flex: 1 0 50%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <h1>Adobados Doña Lidia</h1>
+            </div>
+            <div class="user-info">
+                <span id="current-date"></span>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="nav-tabs">
+            <div class="tab active" data-tab="inventory">Inventario</div>
+            <div class="tab" data-tab="purchase">Compras</div>
+            <div class="tab" data-tab="sale">Ventas</div>
+            <div class="tab" data-tab="closing">Cierre de Caja</div>
+        </div>
+        
+        <!-- Inventario -->
+        <div class="tab-content active" id="inventory">
+            <div class="card">
+                <div class="card-header">Gestión de Productos</div>
+                <div class="card-body">
+                    <form id="product-form">
+                        <div class="form-group">
+                            <label for="product-code">Código del Producto</label>
+                            <input type="text" id="product-code" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-name">Nombre del Producto</label>
+                            <input type="text" id="product-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-description">Descripción</label>
+                            <textarea id="product-description"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-category">Categoría</label>
+                            <select id="product-category">
+                                <option value="carnes">Carnes Adobadas</option>
+                                <option value="embutidos">Embutidos</option>
+                                <option value="salsas">Salsas y Adobos</option>
+                                <option value="otros">Otros</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-price">Precio de Venta</label>
+                            <input type="number" id="product-price" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-cost">Costo</label>
+                            <input type="number" id="product-cost" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-stock">Stock Inicial</label>
+                            <input type="number" id="product-stock" required>
+                        </div>
+                        <button type="submit" class="btn-primary">Agregar Producto</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">Lista de Productos</div>
+                <div class="card-body">
+                    <table id="products-table">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Precio</th>
+                                <th>Costo</th>
+                                <th>Stock</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Los productos se agregarán aquí dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Compras -->
+        <div class="tab-content" id="purchase">
+            <div class="card">
+                <div class="card-header">Registrar Compra</div>
+                <div class="card-body">
+                    <form id="purchase-form">
+                        <div class="form-group">
+                            <label for="purchase-product">Producto</label>
+                            <select id="purchase-product">
+                                <!-- Las opciones se llenarán dinámicamente -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="purchase-quantity">Cantidad</label>
+                            <input type="number" id="purchase-quantity" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="purchase-cost">Costo Unitario</label>
+                            <input type="number" id="purchase-cost" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="purchase-supplier">Proveedor</label>
+                            <input type="text" id="purchase-supplier">
+                        </div>
+                        <button type="submit" class="btn-primary">Registrar Compra</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">Historial de Compras</div>
+                <div class="card-body">
+                    <table id="purchases-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Costo Unitario</th>
+                                <th>Total</th>
+                                <th>Proveedor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Las compras se agregarán aquí dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ventas -->
+        <div class="tab-content" id="sale">
+            <div class="card">
+                <div class="card-header">Registrar Venta</div>
+                <div class="card-body">
+                    <form id="sale-form">
+                        <div class="form-group">
+                            <label for="sale-product">Producto</label>
+                            <select id="sale-product">
+                                <!-- Las opciones se llenarán dinámicamente -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="sale-quantity">Cantidad</label>
+                            <input type="number" id="sale-quantity" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sale-price">Precio Unitario</label>
+                            <input type="number" id="sale-price" step="0.01" required>
+                        </div>
+                        <button type="submit" class="btn-success">Agregar a Venta</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">Detalle de Venta Actual</div>
+                <div class="card-body">
+                    <table id="current-sale-table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Precio Unitario</th>
+                                <th>Subtotal</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Los productos de la venta actual se agregarán aquí dinámicamente -->
+                        </tbody>
+                    </table>
+                    <div class="summary-box">
+                        <h3>Total: $<span id="sale-total">0.00</span></h3>
+                    </div>
+                    <button id="complete-sale" class="btn-primary">Completar Venta</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">Historial de Ventas del Día</div>
+                <div class="card-body">
+                    <table id="sales-table">
+                        <thead>
+                            <tr>
+                                <th>Hora</th>
+                                <th>Productos</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Las ventas se agregarán aquí dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Cierre de Caja -->
+        <div class="tab-content" id="closing">
+            <div class="card">
+                <div class="card-header">Cierre de Caja - Resumen del Día</div>
+                <div class="card-body">
+                    <div class="summary-box">
+                        <h3>Ventas del Día: $<span id="closing-sales-total">0.00</span></h3>
+                        <p>Total de ventas: <span id="closing-sales-count">0</span></p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="closing-initial">Efectivo Inicial</label>
+                        <input type="number" id="closing-initial" step="0.01" value="0.00">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="closing-final">Efectivo Final en Caja</label>
+                        <input type="number" id="closing-final" step="0.01" value="0.00">
+                    </div>
+                    
+                    <div class="summary-box">
+                        <h3>Diferencia: $<span id="closing-difference">0.00</span></h3>
+                    </div>
+                    
+                    <button id="generate-report" class="btn-primary">Generar Reporte</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">Productos Más Vendidos</div>
+                <div class="card-body">
+                    <table id="top-products-table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cantidad Vendida</th>
+                                <th>Total Vendido</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Los productos más vendidos se agregarán aquí dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            &copy; 2025 Adobados Doña Lidia - Todos los derechos reservados
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mostrar fecha actual
+            const now = new Date();
+            document.getElementById('current-date').textContent = now.toLocaleDateString('es-ES', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            // Funcionalidad de pestañas
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Desactivar todas las pestañas
+                    tabs.forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                    
+                    // Activar la pestaña seleccionada
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab).classList.add('active');
+                });
+            });
+            
+            // Almacenamiento de datos
+            let products = JSON.parse(localStorage.getItem('products')) || [];
+            let purchases = JSON.parse(localStorage.getItem('purchases')) || [];
+            let sales = JSON.parse(localStorage.getItem('sales')) || [];
+            let currentSale = [];
+            
+            // Cargar productos en los selectores
+            function loadProductOptions() {
+                const purchaseSelect = document.getElementById('purchase-product');
+                const saleSelect = document.getElementById('sale-product');
+                
+                // Limpiar opciones existentes
+                purchaseSelect.innerHTML = '';
+                saleSelect.innerHTML = '';
+                
+                // Agregar opciones
+                products.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product.code;
+                    option.textContent = `${product.name} (${product.code})`;
+                    
+                    purchaseSelect.appendChild(option.cloneNode(true));
+                    saleSelect.appendChild(option.cloneNode(true));
+                });
+            }
+            
+            // Mostrar productos en la tabla
+            function renderProducts() {
+                const table = document.getElementById('products-table').querySelector('tbody');
+                table.innerHTML = '';
+                
+                products.forEach(product => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${product.code}</td>
+                        <td>${product.name}</td>
+                        <td>${product.category}</td>
+                        <td>$${product.price.toFixed(2)}</td>
+                        <td>$${product.cost.toFixed(2)}</td>
+                        <td>${product.stock}</td>
+                        <td>
+                            <button class="btn-danger" onclick="deleteProduct('${product.code}')">Eliminar</button>
+                        </td>
+                    `;
+                    table.appendChild(row);
+                });
+            }
+            
+            // Agregar producto
+            document.getElementById('product-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const code = document.getElementById('product-code').value;
+                const name = document.getElementById('product-name').value;
+                const description = document.getElementById('product-description').value;
+                const category = document.getElementById('product-category').value;
+                const price = parseFloat(document.getElementById('product-price').value);
+                const cost = parseFloat(document.getElementById('product-cost').value);
+                const stock = parseInt(document.getElementById('product-stock').value);
+                
+                // Verificar si el producto ya existe
+                const existingIndex = products.findIndex(p => p.code === code);
+                
+                if (existingIndex !== -1) {
+                    alert('Ya existe un producto con este código.');
+                    return;
+                }
+                
+                // Agregar producto
+                products.push({
+                    code, name, description, category, price, cost, stock
+                });
+                
+                // Guardar en localStorage
+                localStorage.setItem('products', JSON.stringify(products));
+                
+                // Actualizar la interfaz
+                renderProducts();
+                loadProductOptions();
+                
+                // Limpiar formulario
+                this.reset();
+                
+                alert('Producto agregado correctamente.');
+            });
+            
+            // Registrar compra
+            document.getElementById('purchase-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const productCode = document.getElementById('purchase-product').value;
+                const quantity = parseInt(document.getElementById('purchase-quantity').value);
+                const cost = parseFloat(document.getElementById('purchase-cost').value);
+                const supplier = document.getElementById('purchase-supplier').value;
+                
+                // Encontrar el producto
+                const productIndex = products.findIndex(p => p.code === productCode);
+                
+                if (productIndex === -1) {
+                    alert('Producto no encontrado.');
+                    return;
+                }
+                
+                // Actualizar stock y costo del producto
+                products[productIndex].stock += quantity;
+                // Podrías actualizar el costo promedio aquí si lo deseas
+                
+                // Registrar la compra
+                const purchase = {
+                    date: new Date(),
+                    productCode,
+                    productName: products[productIndex].name,
+                    quantity,
+                    cost,
+                    total: quantity * cost,
+                    supplier
+                };
+                
+                purchases.push(purchase);
+                localStorage.setItem('purchases', JSON.stringify(purchases));
+                localStorage.setItem('products', JSON.stringify(products));
+                
+                // Actualizar la tabla de compras
+                renderPurchases();
+                renderProducts();
+                
+                // Limpiar formulario
+                this.reset();
+                
+                alert('Compra registrada correctamente.');
+            });
+            
+            // Mostrar compras en la tabla
+            function renderPurchases() {
+                const table = document.getElementById('purchases-table').querySelector('tbody');
+                table.innerHTML = '';
+                
+                purchases.forEach(purchase => {
+                    const date = new Date(purchase.date);
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${date.toLocaleDateString()}</td>
+                        <td>${purchase.productName}</td>
+                        <td>${purchase.quantity}</td>
+                        <td>$${purchase.cost.toFixed(2)}</td>
+                        <td>$${purchase.total.toFixed(2)}</td>
+                        <td>${purchase.supplier || 'N/A'}</td>
+                    `;
+                    table.appendChild(row);
+                });
+            }
+            
+            // Agregar producto a la venta actual
+            document.getElementById('sale-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const productCode = document.getElementById('sale-product').value;
+                const quantity = parseInt(document.getElementById('sale-quantity').value);
+                const price = parseFloat(document.getElementById('sale-price').value);
+                
+                // Encontrar el producto
+                const product = products.find(p => p.code === productCode);
+                
+                if (!product) {
+                    alert('Producto no encontrado.');
+                    return;
+                }
+                
+                // Verificar stock
+                if (product.stock < quantity) {
+                    alert(`Stock insuficiente. Solo hay ${product.stock} unidades disponibles.`);
+                    return;
+                }
+                
+                // Agregar a la venta actual
+                currentSale.push({
+                    productCode,
+                    productName: product.name,
+                    quantity,
+                    price,
+                    subtotal: quantity * price
+                });
+                
+                // Actualizar la tabla de venta actual
+                renderCurrentSale();
+                
+                // Limpiar cantidad
+                document.getElementById('sale-quantity').value = '';
+            });
+            
+            // Mostrar venta actual en la tabla
+            function renderCurrentSale() {
+                const table = document.getElementById('current-sale-table').querySelector('tbody');
+                const totalElement = document.getElementById('sale-total');
+                
+                table.innerHTML = '';
+                let total = 0;
+                
+                currentSale.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.productName}</td>
+                        <td>${item.quantity}</td>
+                        <td>$${item.price.toFixed(2)}</td>
+                        <td>$${item.subtotal.toFixed(2)}</td>
+                        <td>
+                            <button class="btn-danger" onclick="removeFromSale(${index})">Quitar</button>
+                        </td>
+                    `;
+                    table.appendChild(row);
+                    total += item.subtotal;
+                });
+                
+                totalElement.textContent = total.toFixed(2);
+            }
+            
+            // Quitar producto de la venta actual
+            window.removeFromSale = function(index) {
+                currentSale.splice(index, 1);
+                renderCurrentSale();
+            };
+            
+            // Completar venta
+            document.getElementById('complete-sale').addEventListener('click', function() {
+                if (currentSale.length === 0) {
+                    alert('No hay productos en la venta actual.');
+                    return;
+                }
+                
+                // Calcular total
+                const total = currentSale.reduce((sum, item) => sum + item.subtotal, 0);
+                
+                // Registrar la venta
+                const sale = {
+                    date: new Date(),
+                    items: [...currentSale],
+                    total
+                };
+                
+                sales.push(sale);
+                localStorage.setItem('sales', JSON.stringify(sales));
+                
+                // Actualizar stock de productos
+                currentSale.forEach(item => {
+                    const productIndex = products.findIndex(p => p.code === item.productCode);
+                    if (productIndex !== -1) {
+                        products[productIndex].stock -= item.quantity;
+                    }
+                });
+                
+                localStorage.setItem('products', JSON.stringify(products));
+                
+                // Actualizar interfaces
+                renderSales();
+                renderProducts();
+                
+                // Reiniciar venta actual
+                currentSale = [];
+                renderCurrentSale();
+                
+                alert(`Venta completada. Total: $${total.toFixed(2)}`);
+            });
+            
+            // Mostrar ventas en la tabla
+            function renderSales() {
+                const table = document.getElementById('sales-table').querySelector('tbody');
+                table.innerHTML = '';
+                
+                // Filtrar ventas del día actual
+                const today = new Date().toDateString();
+                const todaySales = sales.filter(sale => new Date(sale.date).toDateString() === today);
+                
+                todaySales.forEach(sale => {
+                    const date = new Date(sale.date);
+                    const productsList = sale.items.map(item => 
+                        `${item.productName} (${item.quantity})`).join(', ');
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${date.toLocaleTimeString()}</td>
+                        <td>${productsList}</td>
+                        <td>$${sale.total.toFixed(2)}</td>
+                    `;
+                    table.appendChild(row);
+                });
+                
+                // Actualizar resumen de cierre
+                updateClosingSummary();
+            }
+            
+            // Actualizar resumen de cierre
+            function updateClosingSummary() {
+                const today = new Date().toDateString();
+                const todaySales = sales.filter(sale => new Date(sale.date).toDateString() === today);
+                
+                const salesTotal = todaySales.reduce((sum, sale) => sum + sale.total, 0);
+                const salesCount = todaySales.length;
+                
+                document.getElementById('closing-sales-total').textContent = salesTotal.toFixed(2);
+                document.getElementById('closing-sales-count').textContent = salesCount;
+                
+                // Calcular diferencia de caja
+                const initialCash = parseFloat(document.getElementById('closing-initial').value) || 0;
+                const finalCash = parseFloat(document.getElementById('closing-final').value) || 0;
+                const difference = finalCash - initialCash - salesTotal;
+                
+                document.getElementById('closing-difference').textContent = difference.toFixed(2);
+                
+                // Actualizar productos más vendidos
+                updateTopProducts(todaySales);
+            }
+            
+            // Actualizar productos más vendidos
+            function updateTopProducts(todaySales) {
+                // Contar ventas por producto
+                const productSales = {};
+                
+                todaySales.forEach(sale => {
+                    sale.items.forEach(item => {
+                        if (!productSales[item.productCode]) {
+                            productSales[item.productCode] = {
+                                name: item.productName,
+                                quantity: 0,
+                                total: 0
+                            };
+                        }
+                        
+                        productSales[item.productCode].quantity += item.quantity;
+                        productSales[item.productCode].total += item.subtotal;
+                    });
+                });
+                
+                // Convertir a array y ordenar por cantidad
+                const topProducts = Object.values(productSales)
+                    .sort((a, b) => b.quantity - a.quantity)
+                    .slice(0, 5); // Top 5 productos
+                
+                // Mostrar en la tabla
+                const table = document.getElementById('top-products-table').querySelector('tbody');
+                table.innerHTML = '';
+                
+                topProducts.forEach(product => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${product.name}</td>
+                        <td>${product.quantity}</td>
+                        <td>$${product.total.toFixed(2)}</td>
+                    `;
+                    table.appendChild(row);
+                });
+            }
+            
+            // Eventos para actualizar diferencia de caja
+            document.getElementById('closing-initial').addEventListener('input', updateClosingSummary);
+            document.getElementById('closing-final').addEventListener('input', updateClosingSummary);
+            
+            // Generar reporte
+            document.getElementById('generate-report').addEventListener('click', function() {
+                const today = new Date();
+                const salesTotal = parseFloat(document.getElementById('closing-sales-total').textContent);
+                const initialCash = parseFloat(document.getElementById('closing-initial').value) || 0;
+                const finalCash = parseFloat(document.getElementById('closing-final').value) || 0;
+                const difference = parseFloat(document.getElementById('closing-difference').textContent);
+                
+                const report = `
+REPORTE DE CIERRE DE CAJA - Adobados Doña Lidia
+Fecha: ${today.toLocaleDateString()}
+Hora de generación: ${today.toLocaleTimeString()}
+
+VENTAS DEL DÍA:
+Total de ventas: $${salesTotal.toFixed(2)}
+Número de ventas: ${document.getElementById('closing-sales-count').textContent}
+
+EFECTIVO:
+Efectivo inicial: $${initialCash.toFixed(2)}
+Efectivo final en caja: $${finalCash.toFixed(2)}
+Diferencia: $${difference.toFixed(2)}
+
+${difference === 0 ? '✅ CUADRE PERFECTO' : difference > 0 ? '⚠️ SOBRANTE EN CAJA' : '⚠️ FALTANTE EN CAJA'}
+                `;
+                
+                alert(report);
+                
+                // Opción para imprimir o guardar el reporte
+                if (confirm('¿Desea imprimir el reporte?')) {
+                    window.print();
+                }
+            });
+            
+            // Inicializar la aplicación
+            loadProductOptions();
+            renderProducts();
+            renderPurchases();
+            renderSales();
+        });
+    </script>
+</body>
+</html>
